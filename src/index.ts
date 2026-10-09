@@ -17,15 +17,23 @@ export class MyMCP extends McpAgent {
 	}
 }
 
-// Export the OAuth handler as the default
-export default new OAuthProvider({
-	apiRoute: "/sse",
-	// TODO: fix these types
-	// @ts-ignore
-	apiHandler: MyMCP.mount("/sse"),
-	// @ts-ignore
-	defaultHandler: app,
-	authorizeEndpoint: "/authorize",
-	tokenEndpoint: "/token",
-	clientRegistrationEndpoint: "/register",
-});
+// Build metadata from the request origin for local and deployed environments.
+export default {
+	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+		const origin = new URL(request.url).origin;
+		const oauth = new OAuthProvider<Env>({
+			resourceMetadata: {
+				resource: origin,
+				authorization_servers: [origin],
+				resource_name: "MCP Remote Auth Demo",
+			},
+			apiRoute: "/sse",
+			apiHandler: MyMCP.mount("/sse"),
+			defaultHandler: app,
+			authorizeEndpoint: "/authorize",
+			tokenEndpoint: "/token",
+			clientRegistrationEndpoint: "/register",
+		});
+		return oauth.fetch(request, env, ctx);
+	},
+};
