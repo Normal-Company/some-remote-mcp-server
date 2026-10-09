@@ -144,8 +144,19 @@ test("the demo PKCE login permits an authenticated MCP add call", { timeout: 150
 	});
 	try {
 		await client.connect(transport);
+		const { tools } = await client.listTools();
+		const addTool = tools.find((tool) => tool.name === "add");
+		assert.ok(addTool, "tools/list advertises the add tool");
+		assert.equal(addTool.inputSchema.type, "object");
 		const result = await client.callTool({ name: "add", arguments: { a: 2, b: 3 } });
 		assert.deepEqual(result.content, [{ type: "text", text: "5" }]);
+		await client.ping();
+		const failed = await client.callTool({ name: "unregistered-tool", arguments: {} });
+		assert.equal(failed.isError, true);
+		assert.equal(
+			failed.content[0].text,
+			"MCP error -32602: Tool unregistered-tool not found",
+		);
 	} finally {
 		await client.close();
 	}
