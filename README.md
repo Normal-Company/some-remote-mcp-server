@@ -2,6 +2,24 @@
 
 Let's get a remote MCP server up-and-running on Cloudflare Workers complete with OAuth login!
 
+This is an authentication demo. It accepts mock user credentials and must not protect
+production data until a real identity check is implemented. Dependency scanning and
+the local tests below do not establish production authentication security.
+
+## Validate changes
+
+```bash
+npm ci
+npm run typecheck
+npm test
+npm audit
+npx wrangler deploy --dry-run
+```
+
+The tests start a local Worker with temporary storage. They check OAuth discovery,
+rejection of unauthenticated MCP access, client registration, and a PKCE grant that
+calls the `add` tool. They do not deploy a Worker or write to production KV.
+
 ## Develop locally
 
 ```bash
